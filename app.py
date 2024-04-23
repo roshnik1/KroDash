@@ -235,13 +235,13 @@ def readNewCSVData(file_path):
         for line in csv_reader:
 
             #set table type by reading first header in first line
-            if i == 0 and line[0].lower() == 'hshd_num': #households
+            if i == 0 and line[0].lower() == 'HSHD_NUM': #households
                 tableType = 1
                 readSuccess = True
-            elif i == 0 and line[0].lower() == 'basket_num': #transactions
+            elif i == 0 and line[0].lower() == 'BASKET_NUM': #transactions
                 tableType = 2
                 readSuccess = True
-            elif i == 0 and line[0].lower() == 'product_num': #products
+            elif i == 0 and line[0].lower() == 'PRODUCT_NUM': #products
                 tableType = 3
                 readSuccess = True
 
