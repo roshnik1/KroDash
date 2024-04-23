@@ -187,11 +187,21 @@ def uploader():
         # Ensure name is not empty if it hasn't been set
         if not name:
             name = "Guest"
+    
     if request.method == 'POST':
         f = request.files['file']
         newFileName = fileNameAppend(secure_filename(f.filename))
-        f.save(os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(newFileName)))
-        tableString = readNewCSVData(app.config['UPLOAD_FOLDER'] + '\\' + secure_filename(newFileName))
+
+        # Create the uploads directory if it doesn't exist
+        upload_dir = app.config['UPLOAD_FOLDER']
+        if not os.path.exists(upload_dir):
+            os.makedirs(upload_dir)
+
+        # Save the file to the uploads directory
+        f.save(os.path.join(upload_dir, secure_filename(newFileName)))
+
+        tableString = readNewCSVData(os.path.join(upload_dir, secure_filename(newFileName)))
+
     return render_template('uploaded.html', name = name, tableString = tableString)
 
 @app.route('/dashboard', methods=['GET', 'POST'])
