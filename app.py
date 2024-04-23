@@ -17,7 +17,9 @@ from sqlalchemy.orm import relationship
 
 app = Flask(__name__)
 
-DATABASE_URI = "postgresql+psycopg2://postgres:Password123@127.0.0.1:5432/test"
+# DATABASE_URI = "postgresql+psycopg2://postgres:Password123@127.0.0.1:5432/test"
+DATABASE_URI = 'postgres://fynzjtuzvrhont:80e62925c3679b487809209a004f18f13a276472aa7cc53d3f1ab490ad41f059@ec2-44-215-1-253.compute-1.amazonaws.com:5432/drfosi1e6ntn8'
+
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
 
 db = SQLAlchemy(app)
