@@ -15,6 +15,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker, relationship
 from werkzeug.utils import secure_filename
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.exc import SQLAlchemyError
 
 app = Flask(__name__)
 
@@ -274,32 +275,53 @@ def readNewCSVData(file_path):
             return 'Error in reading CSV file, headers do not meet expectation'
 
 def writeNewCSVData(tableType, rows):
-    newRows = []
-
-    if tableType == 1: #households
-        for row in rows:
-            print(row)
-            newRow = Households(hshd_num = row[0], l = boolFix(row[1]), age_range = row[2], marital = row[3], income_range = row[4], homeowner = row[5], hshd_composition = row[6], hh_size = row[7], children = row[8])
-            newRows.append(newRow)
-    elif tableType == 2: #transactions
-        for row in rows:
-            newRow = Transactions(basket_num = row[0], hshd_num = row[1], purchase = row[2], product_num = row[3], spend = row[4], units = row[5], store_r = row[6], week_num = row[7], year = row[8])
-            newRows.append(newRow)
-    elif tableType == 3: #products
-        for row in rows:
-            newRow = Products(product_num = row[0], department = row[1], commodity = row[2], brand_ty = row[3], natural_organic_flag = row[4])
-            newRows.append(newRow)
-
-    for newRow in newRows:
-        session.add(newRow)
-
     try:
-        session.commit()
-    except Exception as ex:
-        app.logger.error(f"{ex.__class__.__name__}: {ex}")
-        session.rollback()
+        if tableType == 1:  # households
+            for row in rows:
+                newRow = Households(
+                    hshd_num=row[0],
+                    l=boolFix(row[1]),
+                    age_range=row[2],
+                    marital=row[3],
+                    income_range=row[4],
+                    homeowner=row[5],
+                    hshd_composition=row[6],
+                    hh_size=row[7],
+                    children=row[8]
+                )
+                session.add(newRow)
+        elif tableType == 2:  # transactions
+            for row in rows:
+                newRow = Transactions(
+                    basket_num=row[0],
+                    hshd_num=row[1],
+                    purchase=row[2],
+                    product_num=row[3],
+                    spend=row[4],
+                    units=row[5],
+                    store_r=row[6],
+                    week_num=row[7],
+                    year=row[8]
+                )
+                session.add(newRow)
+        elif tableType == 3:  # products
+            for row in rows:
+                newRow = Products(
+                    product_num=row[0],
+                    department=row[1],
+                    commodity=row[2],
+                    brand_ty=row[3],
+                    natural_organic_flag=row[4]
+                )
+                session.add(newRow)
 
-    return tableType
+        session.commit()
+        return tableType  # Returning tableType might not be necessary
+    except SQLAlchemyError as ex:
+        session.rollback()
+        error_message = f"Error updating table type {tableType}: {str(ex)}"
+        app.logger.error(error_message)
+        return error_message
 
 def fileNameAppend(filename):
     name, ext = os.path.splitext(filename)
