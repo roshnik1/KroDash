@@ -233,24 +233,32 @@ def readNewCSVData(file_path):
         readSuccess = False #if header matches
         rows = []
         for line in csv_reader:
+            print("Reading line:", line)  # Debugging statement
 
             #set table type by reading first header in first line
-            if i == 0 and line[0].upper() == 'HSHD_NUM': #households
-                tableType = 1
-                readSuccess = True
-            elif i == 0 and line[0].upper() == 'BASKET_NUM': #transactions
-                tableType = 2
-                readSuccess = True
-            elif i == 0 and line[0].upper() == 'PRODUCT_NUM': #products
-                tableType = 3
-                readSuccess = True
+            if i == 0:
+                print("Checking header:", line[0])  # Debugging statement
+                if line[0].upper() == 'HSHD_NUM': #households
+                    tableType = 1
+                    readSuccess = True
+                    print("Header matched: 'HSHD_NUM'")  # Debugging statement
+                elif line[0].upper() == 'BASKET_NUM': #transactions
+                    tableType = 2
+                    readSuccess = True
+                    print("Header matched: 'BASKET_NUM'")  # Debugging statement
+                elif line[0].upper() == 'PRODUCT_NUM': #products
+                    tableType = 3
+                    readSuccess = True
+                    print("Header matched: 'PRODUCT_NUM'")  # Debugging statement
 
-            if readSuccess == True:
+            if readSuccess:
                 if i > 0:
                     rows.append(line)
+                    print("Added row to rows list:", line)  # Debugging statement
             i += 1
 
-        if readSuccess == True and len(rows) > 0:
+        if readSuccess and len(rows) > 0:
+            print("Preparing to write data for table type:", tableType)  # Debugging statement
             returnMessage = writeNewCSVData(tableType, rows)
             tableString = ''
             if returnMessage == 1:
@@ -259,9 +267,11 @@ def readNewCSVData(file_path):
                 tableString = 'Transactions'
             elif returnMessage == 3:
                 tableString = 'Products'
-            return('Updated table "'+tableString+'"')
+            print("Update successful for table:", tableString)  # Debugging statement
+            return 'Updated table "' + tableString + '"'
         else:
-            return('Error in reading CSV file, headers do not meet expectation')
+            print("Error: Headers do not meet expectation or no rows found")  # Debugging statement
+            return 'Error in reading CSV file, headers do not meet expectation'
 
 def writeNewCSVData(tableType, rows):
     newRows = []
