@@ -47,8 +47,6 @@ relative_path = os.path.dirname(__file__)
 # Use forward slashes for file paths, even on Windows
 app.config['UPLOAD_EXTENSIONS'] = ['.csv']
 app.config['UPLOAD_FOLDER'] = os.path.join(relative_path, 'uploads')
-
-name = ""
  
 class Households(db.Model):
     __tablename__ = 'households'
@@ -121,7 +119,10 @@ def example_pull():
     global household
     if request.method == 'POST':
         name = request.form.get('name') 
-    
+    else:
+        # Ensure name is not empty if it hasn't been set
+        if not name:
+            name = "Guest"
     household_10 = session.query(Households, Transactions, Products).\
         join(Transactions, Transactions.hshd_num == Households.hshd_num).\
         join(Products, Products.product_num == Transactions.product_num).\
@@ -131,16 +132,10 @@ def example_pull():
 
 @app.route('/search_input', methods=['GET', 'POST'])
 def search_input():
-    global name
-    if request.method == 'POST':
-        name = request.form.get('name') 
     return render_template('search_input.html', name = name, hhs = hhs)
 
 @app.route('/search_pull', methods=['GET', 'POST'])
 def search_pull():
-    global name
-    if request.method == 'POST':
-        name = request.form.get('name') 
     selected_num = request.form['hh']
 
     household_search = session.query(Households, Transactions, Products).\
@@ -152,15 +147,11 @@ def search_pull():
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload(methods=['GET', 'POST']):
-    if request.method == 'POST':
-        name = request.form.get('name') 
     return render_template('upload.html', name = name)
 	
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader():
-    global name
     if request.method == 'POST':
-        name = request.form.get('name')
         f = request.files['file']
         newFileName = fileNameAppend(secure_filename(f.filename))
         f.save(os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(newFileName)))
