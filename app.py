@@ -116,7 +116,7 @@ def predictive_modeling():
 @app.route('/example_pull', methods=['GET', 'POST'])
 def example_pull():
     global name
-    global household
+    global households
     if request.method == 'POST':
         name = request.form.get('name') 
     else:
@@ -131,7 +131,7 @@ def example_pull():
     
     print("Household Data:", household_10)  # Add this debug statement
 
-    return render_template('example_pull.html', name = name, household = household_10)  
+    return render_template('example_pull.html', name = name, households = household_10)  
 
 @app.route('/search_input', methods=['GET', 'POST'])
 def search_input():
