@@ -128,7 +128,7 @@ def example_pull():
     household_10 = session.query(Households, Transactions, Products).\
         join(Transactions, Transactions.hshd_num == Households.hshd_num).\
         join(Products, Products.product_num == Transactions.product_num).\
-        filter(Households.hshd_num == 10).all()
+        filter(Households.hshd_num == 7).all()
     
     print("Household Data:", household_10)  # Add this debug statement
 
@@ -278,6 +278,7 @@ def writeNewCSVData(tableType, rows):
     try:
         if tableType == 1:  # households
             for row in rows:
+                print("Processing row for Households:", row)  # Debugging statement
                 newRow = Households(
                     hshd_num=row[0],
                     l=boolFix(row[1]),
@@ -292,20 +293,22 @@ def writeNewCSVData(tableType, rows):
                 session.add(newRow)
         elif tableType == 2:  # transactions
             for row in rows:
+                print("Processing row for Transactions:", row)  # Debugging statement
                 newRow = Transactions(
-                    basket_num=row[0],
-                    hshd_num=row[1],
-                    purchase=row[2],
-                    product_num=row[3],
-                    spend=row[4],
-                    units=row[5],
-                    store_r=row[6],
-                    week_num=row[7],
-                    year=row[8]
+                    basket_num=row[1],
+                    hshd_num=row[2],
+                    purchase=row[3],
+                    product_num=row[4],
+                    spend=row[5],
+                    units=row[6],
+                    store_r=row[7],
+                    week_num=row[9],
+                    year=row[10]
                 )
                 session.add(newRow)
         elif tableType == 3:  # products
             for row in rows:
+                print("Processing row for Products:", row)  # Debugging statement
                 newRow = Products(
                     product_num=row[0],
                     department=row[1],
@@ -316,12 +319,15 @@ def writeNewCSVData(tableType, rows):
                 session.add(newRow)
 
         session.commit()
+        print("Commit successful.")  # Debugging statement
         return tableType  # Returning tableType might not be necessary
     except SQLAlchemyError as ex:
         session.rollback()
         error_message = f"Error updating table type {tableType}: {str(ex)}"
         app.logger.error(error_message)
+        print("Error:", error_message)  # Debugging statement
         return error_message
+
 
 def fileNameAppend(filename):
     name, ext = os.path.splitext(filename)
