@@ -279,7 +279,7 @@ def writeNewCSVData(tableType, rows):
     if tableType == 1: #households
         for row in rows:
             print(row)
-            newRow = Households(hshd_num = row[0], l = boolFix(row[1]), age_range = row[2], marital = row[3], income_range = row[4], homeowner = row[5], hshd_competition = row[6], hh_size = row[7], children = row[8])
+            newRow = Households(hshd_num = row[0], l = boolFix(row[1]), age_range = row[2], marital = row[3], income_range = row[4], homeowner = row[5], hshd_composition = row[6], hh_size = row[7], children = row[8])
             newRows.append(newRow)
     elif tableType == 2: #transactions
         for row in rows:
