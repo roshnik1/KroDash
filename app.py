@@ -48,7 +48,7 @@ relative_path = os.path.dirname(__file__)
 app.config['UPLOAD_EXTENSIONS'] = ['.csv']
 app.config['UPLOAD_FOLDER'] = os.path.join(relative_path, 'uploads')
 
-name = None
+name = ""
 household = None # Initialize household as None if needed
 hhs = None
 selected_num = None
