@@ -135,10 +135,26 @@ def example_pull():
 
 @app.route('/search_input', methods=['GET', 'POST'])
 def search_input():
+    global name
+    name = ""
+    if request.method == 'POST':
+        name = request.form.get('name') 
+    else:
+        # Ensure name is not empty if it hasn't been set
+        if not name:
+            name = "Guest"
     return render_template('search_input.html', name = name, hhs = hhs)
 
 @app.route('/search_pull', methods=['GET', 'POST'])
 def search_pull():
+    global name
+    name = ""
+    if request.method == 'POST':
+        name = request.form.get('name') 
+    else:
+        # Ensure name is not empty if it hasn't been set
+        if not name:
+            name = "Guest"
     selected_num = request.form['hh']
 
     household_search = session.query(Households, Transactions, Products).\
@@ -150,10 +166,26 @@ def search_pull():
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload(methods=['GET', 'POST']):
+    global name
+    name = ""
+    if request.method == 'POST':
+        name = request.form.get('name') 
+    else:
+        # Ensure name is not empty if it hasn't been set
+        if not name:
+            name = "Guest"
     return render_template('upload.html', name = name)
 	
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader():
+    global name
+    name = ""
+    if request.method == 'POST':
+        name = request.form.get('name') 
+    else:
+        # Ensure name is not empty if it hasn't been set
+        if not name:
+            name = "Guest"
     if request.method == 'POST':
         f = request.files['file']
         newFileName = fileNameAppend(secure_filename(f.filename))
