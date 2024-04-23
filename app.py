@@ -49,11 +49,7 @@ app.config['UPLOAD_EXTENSIONS'] = ['.csv']
 app.config['UPLOAD_FOLDER'] = os.path.join(relative_path, 'uploads')
 
 name = ""
-household = ""
-hhs = ""
-selected_num = ""
-
-    
+ 
 class Households(db.Model):
     __tablename__ = 'households'
 
