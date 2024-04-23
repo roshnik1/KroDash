@@ -1,31 +1,45 @@
 import os
 import csv
+import psycopg2
 import time
 import pandas as pd
 import plotly
 import plotly.express as px
 import json
 import csv
-from sqlalchemy import Column, Integer, String, Boolean, Date, Numeric
+from sqlalchemy import Column, Integer, String, Boolean, Date, Numeric, ForeignKey
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from werkzeug.utils import secure_filename
-from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
 app = Flask(__name__)
 
-# DATABASE_URI = "postgresql+psycopg2://postgres:Password123@127.0.0.1:5432/test"
-DATABASE_URI = 'postgres://fynzjtuzvrhont:80e62925c3679b487809209a004f18f13a276472aa7cc53d3f1ab490ad41f059@ec2-44-215-1-253.compute-1.amazonaws.com:5432/drfosi1e6ntn8'
+# Define the SQLAlchemy database URI
+DATABASE_URI = 'postgresql+psycopg2://roshnik:Hello123#@retail-data.postgres.database.azure.com:5432/postgres'
 
+# Configure the Flask app with SQLAlchemy database URI
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
 
+# Suppress SQLAlchemy's track modifications feature
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize SQLAlchemy with the Flask app
 db = SQLAlchemy(app)
+
+# Initialize Flask-Migrate with the Flask app and SQLAlchemy
 migrate = Migrate(app, db)
+
+# Create the engine for SQLAlchemy
 engine = db.create_engine(DATABASE_URI)
-Session = sessionmaker(bind = engine)
+
+# Create a session maker for SQLAlchemy
+Session = sessionmaker(bind=engine)
+
+# Create a session object
 session = Session()
 
 relative_path = os.path.dirname(__file__)
@@ -33,89 +47,55 @@ relative_path = os.path.dirname(__file__)
 # Use forward slashes for file paths, even on Windows
 app.config['UPLOAD_EXTENSIONS'] = ['.csv']
 app.config['UPLOAD_FOLDER'] = os.path.join(relative_path, 'uploads')
-
+    
 class Households(db.Model):
-    __tablename__ = '400_households'
-    HSHD_NUM = db.Column(db.Integer, primary_key=True)
-    L = db.Column(db.Boolean)
-    AGE_RANGE = db.Column(db.String(5))
-    MARITAL = db.Column(db.String(10))
-    INCOME_RANGE = db.Column(db.String(10))
-    HOMEOWNER = db.Column(db.String(10))
-    HSHD_COMPOSITION = db.Column(db.String(25))
-    HH_SIZE = db.Column(db.String(5))
-    CHILDREN = db.Column(db.String(5))
-    
-    def __str__(self):
-        return self.HSHD_NUM
-    
+    __tablename__ = 'households'
+
+    # Convert column names to lowercase
+    hshd_num = db.Column(db.Integer, primary_key=True)
+    l = db.Column(db.Boolean)
+    age_range = db.Column(db.String(5))
+    marital = db.Column(db.String(10))
+    income_range = db.Column(db.String(10))
+    homeowner = db.Column(db.String(10))
+    hshd_composition = db.Column(db.String(25))
+    hh_size = db.Column(db.String(5))
+    children = db.Column(db.String(5))
+
+    # Define foreign key relationship with Transactions
+    transactions = relationship("Transactions", back_populates="household")
+
 class Products(db.Model):
-    __tablename__ = '400_products'
-    PRODUCT_NUM = db.Column(db.Integer, primary_key=True)
-    DEPARTMENT = db.Column(db.String(10))
-    COMMODITY = db.Column(db.String(25))
-    BRAND_TY = db.Column(db.String(10))
-    NATURAL_ORGANIC_FLAG = db.Column(db.String(1))
+    __tablename__ = 'products'
+
+    # Convert column names to lowercase
+    product_num = db.Column(db.Integer, primary_key=True)
+    department = db.Column(db.String(10))
+    commodity = db.Column(db.String(25))
+    brand_ty = db.Column(db.String(10))
+    natural_organic_flag = db.Column(db.String(1))
+
+    # Define foreign key relationship with Transactions
+    transactions = relationship("Transactions", back_populates="product")
 
 class Transactions(db.Model):
-    __tablename__ = '400_transactions'
-    ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    BASKET_NUM = db.Column(db.Integer)
-    HSHD_NUM = db.Column(db.Integer, db.ForeignKey('400_households.HSHD_NUM'))
-    PRODUCT_NUM = db.Column(db.Integer, db.ForeignKey('400_products.PRODUCT_NUM'))
-    PURCHASE = db.Column(db.Date)
-    SPEND = db.Column(db.Numeric)
-    UNITS = db.Column(db.Integer)
-    STORE_R = db.Column(db.String(10))
-    WEEK_NUM = db.Column(db.Integer)
-    YEAR = db.Column(db.Integer)
+    __tablename__ = 'transactions'
+
+    # Convert column names to lowercase
+    id = db.Column(db.Integer, primary_key=True)
+    basket_num = db.Column(db.Integer)
+    hshd_num = db.Column(db.Integer, db.ForeignKey('households.hshd_num'))
+    purchase = db.Column(db.Date)
+    product_num = db.Column(db.Integer, db.ForeignKey('products.product_num'))
+    spend = db.Column(db.Numeric)
+    units = db.Column(db.Integer)
+    store_r = db.Column(db.String(10))
+    week_num = db.Column(db.Integer)
+    year = db.Column(db.Integer)
 
     # Define relationships
-    household = relationship("Households", foreign_keys=[HSHD_NUM])
-    product = relationship("Products", foreign_keys=[PRODUCT_NUM])
-
-# Create tables
-with app.app_context():
-    db.create_all()
-
-def import_csv_data(csv_file, model_class):
-    with app.app_context():
-        with open(csv_file, 'r', encoding='utf-8-sig') as file:
-            csv_reader = csv.DictReader(file)
-            for row in csv_reader:
-                # Convert 'True' and 'False' strings to boolean values
-                for key, value in row.items():
-                    if value.lower() == 'true':
-                        row[key] = True
-                    elif value.lower() == 'false':
-                        row[key] = False
-                try:
-                    db.session.add(model_class(**row))
-                except Exception as e:
-                    print(f"Error importing data from {csv_file}: {e}")
-        try:
-            db.session.commit()
-        except Exception as e:
-            print(f"Error committing data to the database: {e}")
-
-def initialize_database():
-    data_folder = os.path.join(app.root_path, 'data')
-    for filename in os.listdir(data_folder):
-        if filename.endswith('.csv'):
-            if 'households' in filename:
-                import_csv_data(os.path.join(data_folder, filename), Households)
-            elif 'products' in filename:
-                import_csv_data(os.path.join(data_folder, filename), Products)
-            elif 'transactions' in filename:
-                import_csv_data(os.path.join(data_folder, filename), Transactions)
-
-initialize_database()
-
-# Create tables
-with app.app_context():
-    db.create_all()
-
-# from models import Households, Transactions, Products
+    household = relationship("Households", back_populates="transactions")
+    product = relationship("Products", back_populates="transactions")
 
 @app.route('/')
 def redirect_login():
@@ -132,13 +112,10 @@ def predictive_modeling():
 
 @app.route('/example_pull')
 def example_pull():
-    household_10 = db.session.query(Households, Transactions, Products).\
-        join(Transactions, Transactions.HSHD_NUM == Households.HSHD_NUM).\
-        join(Products, Products.PRODUCT_NUM == Transactions.PRODUCT_NUM).\
-        filter(Households.HSHD_NUM == 10).all()
-    
-    # Print the variable to the console
-    print(household_10)
+    household_10 = session.query(Households, Transactions, Products).\
+        join(Transactions, Transactions.hshd_num == Households.hshd_num).\
+        join(Products, Products.product_num == Transactions.product_num).\
+        filter(Households.hshd_num == 10).all()
 
     return render_template('example_pull.html', name = name, households = household_10)  
 
@@ -151,9 +128,9 @@ def search_pull():
     selected_num = request.form['hh']
 
     household_search = session.query(Households, Transactions, Products).\
-        join(Transactions, Transactions.HSHD_NUM == Households.HSHD_NUM).\
-        join(Products, Products.PRODUCT_NUM == Transactions.PRODUCT_NUM).\
-        filter(Households.HSHD_NUM == selected_num).all()
+        join(Transactions, Transactions.hshd_num == Households.hshd_num).\
+        join(Products, Products.product_num == Transactions.product_num).\
+        filter(Households.hshd_num == selected_num).all()
 
     return render_template('search_pull.html', name = name, households = household_search, hhs = hhs, selected_num = selected_num)  
 
@@ -174,7 +151,7 @@ def uploader():
 def dashboard():
     global name
     global hhs
-    hhst = session.query(Households.HSHD_NUM).order_by(Households.HSHD_NUM).all()
+    hhst = session.query(Households.hshd_num).order_by(Households.hshd_num).all()
     i = 0
     hhs = [item[i] for item in hhst]
 
@@ -235,15 +212,15 @@ def writeNewCSVData(tableType, rows):
     if tableType == 1: #households
         for row in rows:
             print(row)
-            newRow = Households(HSHD_NUM = row[0], L = boolFix(row[1]), AGE_RANGE = row[2], MARITAL = row[3], INCOME_RANGE = row[4], HOMEOWNER = row[5], HSHD_COMPOSITION = row[6], HH_SIZE = row[7], CHILDREN = row[8])
+            newRow = Households(hshd_num = row[0], l = boolFix(row[1]), age_range = row[2], marital = row[3], income_range = row[4], homeowner = row[5], hshd_competition = row[6], hh_size = row[7], children = row[8])
             newRows.append(newRow)
     elif tableType == 2: #transactions
         for row in rows:
-            newRow = Transactions(BASKET_NUM = row[0], HSHD_NUM = row[1], PURCHASE = row[2], PRODUCT_NUM = row[3], SPEND = row[4], UNITS = row[5], STORE_R = row[6], WEEK_NUM = row[7], YEAR = row[8])
+            newRow = Transactions(basket_num = row[0], hshd_num = row[1], purchase = row[2], product_num = row[3], spend = row[4], units = row[5], store_r = row[6], week_num = row[7], year = row[8])
             newRows.append(newRow)
     elif tableType == 3: #products
         for row in rows:
-            newRow = Products(PRODUCT_NUM = row[0], DEPARTMENT = row[1], COMMODITY = row[2], BRAND_TY = row[3], NATURAL_ORGANIC_FLAG = row[4])
+            newRow = Products(product_num = row[0], department = row[1], commodity = row[2], brand_ty = row[3], natural_organic_flag = row[4])
             newRows.append(newRow)
 
     for newRow in newRows:
@@ -276,16 +253,16 @@ def get_graphs():
     return sales, region, commodity
 
 def sales_graph():
-    sales_region = session.query(func.count(Transactions.SPEND), Transactions.YEAR, Transactions.STORE_R).\
-        filter(Transactions.YEAR < 2021).\
-        group_by(Transactions.YEAR, Transactions.STORE_R)
+    sales_region = session.query(func.count(Transactions.spend), Transactions.year, Transactions.store_r).\
+        filter(Transactions.year < 2021).\
+        group_by(Transactions.year, Transactions.store_r)
 
     sales_df = pd.read_sql(sales_region.statement.compile(engine), session.bind)
     
-    sales_fig = px.bar(sales_df, x='YEAR', y='count_1', 
-    color='STORE_R', barmode='group',
+    sales_fig = px.bar(sales_df, x='year', y='count_1', 
+    color='store_r', barmode='group',
     labels = {
-        "YEAR": "Year",
+        "year": "Year",
         "count_1": "Total Sales"
     })
     sales_fig.update_layout(title_text="Sales per Year", title_x=0.5)
@@ -294,15 +271,15 @@ def sales_graph():
     return sales_graphJSON
 
 def region_graph():
-    households_region = session.query(func.count(Households.HSHD_NUM), Transactions.STORE_R).\
-        join(Transactions, Transactions.HSHD_NUM == Households.HSHD_NUM).\
-        group_by(Transactions.STORE_R)
+    households_region = session.query(func.count(Households.hshd_num), Transactions.store_r).\
+        join(Transactions, Transactions.hshd_num == Households.hshd_num).\
+        group_by(Transactions.store_r)
 
     region_df = pd.read_sql(households_region.statement.compile(engine), session.bind)
     
-    region_fig = px.bar(region_df, x='STORE_R', y='count_1',
+    region_fig = px.bar(region_df, x='store_r', y='count_1',
     labels = {
-        "STORE_R": "Store Region",
+        "store_r": "Store Region",
         "count_1": "Number of stores"
     })
     region_fig.update_traces(marker_color="#007bff")
@@ -312,14 +289,14 @@ def region_graph():
     return region_graphJSON
 
 def commodity_graph():
-    households_commodity = session.query(func.count(Products.COMMODITY), Products.COMMODITY).\
-        join(Transactions, Transactions.PRODUCT_NUM == Products.PRODUCT_NUM).\
-        group_by(Products.COMMODITY)
+    households_commodity = session.query(func.count(Products.commodity), Products.commodity).\
+        join(Transactions, Transactions.product_num == Products.product_num).\
+        group_by(Products.commodity)
 
     commodity_df = pd.read_sql(households_commodity.statement.compile(engine), session.bind)
-    commodity_df.loc[commodity_df['count_1'] < 10000, 'COMMODITY'] = "Other Commodities"
+    commodity_df.loc[commodity_df['count_1'] < 10000, 'commodity'] = "Other Commodities"
     
-    commodity_fig = px.pie(commodity_df, values='count_1', names='COMMODITY', width=1000, height=800)
+    commodity_fig = px.pie(commodity_df, values='count_1', names='commodity', width=1000, height=800)
     commodity_fig.update_layout(title_text="Commodity Purchase (%of Total Sales)", title_x=0.5)
     commodity_graphJSON = json.dumps(commodity_fig, cls=plotly.utils.PlotlyJSONEncoder)
 
