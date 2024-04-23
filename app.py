@@ -148,6 +148,7 @@ def search_input():
 @app.route('/search_pull', methods=['GET', 'POST'])
 def search_pull():
     global name
+    global hhs
     name = ""
     if request.method == 'POST':
         name = request.form.get('name') 
