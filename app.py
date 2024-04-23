@@ -123,10 +123,13 @@ def example_pull():
         # Ensure name is not empty if it hasn't been set
         if not name:
             name = "Guest"
+    
     household_10 = session.query(Households, Transactions, Products).\
         join(Transactions, Transactions.hshd_num == Households.hshd_num).\
         join(Products, Products.product_num == Transactions.product_num).\
         filter(Households.hshd_num == 10).all()
+    
+    print("Household Data:", household_10)  # Add this debug statement
 
     return render_template('example_pull.html', name = name, household = household_10)  
 
