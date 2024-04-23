@@ -221,7 +221,8 @@ def dashboard():
         return render_template('dashboard.html', name = name, 
         sales_graph = sales_graph,
         region_graph = region_graph, 
-        commodity_graph = commodity_graph)
+        commodity_graph = commodity_graph,
+        hhs = hhs)
     else:
         return redirect(url_for('login'))
 
