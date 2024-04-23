@@ -105,13 +105,21 @@ def redirect_login():
 def login():
    return render_template('login.html')
 
-@app.route('/predictive_modeling')
+@app.route('/predictive_modeling', methods=['GET', 'POST'])
 def predictive_modeling():
+    global name
+    if request.method == 'POST':
+        name = request.form.get('name') 
     return render_template('predictive_modeling.html', name = name)
 
 
-@app.route('/example_pull')
+@app.route('/example_pull', methods=['GET', 'POST'])
 def example_pull():
+    global name
+    
+    if request.method == 'POST':
+        name = request.form.get('name') 
+    
     household_10 = session.query(Households, Transactions, Products).\
         join(Transactions, Transactions.hshd_num == Households.hshd_num).\
         join(Products, Products.product_num == Transactions.product_num).\
@@ -121,10 +129,16 @@ def example_pull():
 
 @app.route('/search_input', methods=['GET', 'POST'])
 def search_input():
+    global name
+    if request.method == 'POST':
+        name = request.form.get('name') 
     return render_template('search_input.html', name = name, hhs = hhs)
 
 @app.route('/search_pull', methods=['GET', 'POST'])
 def search_pull():
+    global name
+    if request.method == 'POST':
+        name = request.form.get('name') 
     selected_num = request.form['hh']
 
     household_search = session.query(Households, Transactions, Products).\
@@ -134,8 +148,10 @@ def search_pull():
 
     return render_template('search_pull.html', name = name, households = household_search, hhs = hhs, selected_num = selected_num)  
 
-@app.route('/upload')
-def upload():
+@app.route('/upload', methods=['GET', 'POST'])
+def upload(methods=['GET', 'POST']):
+    if request.method == 'POST':
+        name = request.form.get('name') 
     return render_template('upload.html', name = name)
 	
 @app.route('/uploader', methods = ['GET', 'POST'])
