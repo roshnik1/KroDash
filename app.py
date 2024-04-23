@@ -5,22 +5,19 @@ import pandas as pd
 import plotly
 import plotly.express as px
 import json
+import csv
+from sqlalchemy import Column, Integer, String, Boolean, Date, Numeric
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from sqlalchemy.orm import sessionmaker
 from werkzeug.utils import secure_filename
+from sqlalchemy.orm import relationship
 
-db = SQLAlchemy()
 app = Flask(__name__)
 
-DATABASE_URI = 'postgresql+psycopg2://{dbuser}:{dbpass}@{dbhost}/{dbname}'.format(
-    dbuser=os.environ['DBUSER'],
-    dbpass=os.environ['DBPASS'],
-    dbhost=os.environ['DBHOST'],
-    dbname=os.environ['DBNAME']
-)
+DATABASE_URI = "postgresql+psycopg2://postgres:Password123@127.0.0.1:5432/test"
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
 
 db = SQLAlchemy(app)
@@ -31,14 +28,92 @@ session = Session()
 
 relative_path = os.path.dirname(__file__)
 
-hfile_path = relative_path + '\\data\\400_households.csv'
-pfile_path = relative_path + '\\data\\400_products.csv'
-tfile_path = relative_path + '\\data\\400_transactions.csv'
-
+# Use forward slashes for file paths, even on Windows
 app.config['UPLOAD_EXTENSIONS'] = ['.csv']
-app.config['UPLOAD_FOLDER'] = relative_path + '\\uploads'
+app.config['UPLOAD_FOLDER'] = os.path.join(relative_path, 'uploads')
 
-from models import Households, Transactions, Products
+class Households(db.Model):
+    __tablename__ = '400_households'
+    HSHD_NUM = db.Column(db.Integer, primary_key=True)
+    L = db.Column(db.Boolean)
+    AGE_RANGE = db.Column(db.String(5))
+    MARITAL = db.Column(db.String(10))
+    INCOME_RANGE = db.Column(db.String(10))
+    HOMEOWNER = db.Column(db.String(10))
+    HSHD_COMPOSITION = db.Column(db.String(25))
+    HH_SIZE = db.Column(db.String(5))
+    CHILDREN = db.Column(db.String(5))
+    
+    def __str__(self):
+        return self.HSHD_NUM
+    
+class Products(db.Model):
+    __tablename__ = '400_products'
+    PRODUCT_NUM = db.Column(db.Integer, primary_key=True)
+    DEPARTMENT = db.Column(db.String(10))
+    COMMODITY = db.Column(db.String(25))
+    BRAND_TY = db.Column(db.String(10))
+    NATURAL_ORGANIC_FLAG = db.Column(db.String(1))
+
+class Transactions(db.Model):
+    __tablename__ = '400_transactions'
+    ID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    BASKET_NUM = db.Column(db.Integer)
+    HSHD_NUM = db.Column(db.Integer, db.ForeignKey('400_households.HSHD_NUM'))
+    PRODUCT_NUM = db.Column(db.Integer, db.ForeignKey('400_products.PRODUCT_NUM'))
+    PURCHASE = db.Column(db.Date)
+    SPEND = db.Column(db.Numeric)
+    UNITS = db.Column(db.Integer)
+    STORE_R = db.Column(db.String(10))
+    WEEK_NUM = db.Column(db.Integer)
+    YEAR = db.Column(db.Integer)
+
+    # Define relationships
+    household = relationship("Households", foreign_keys=[HSHD_NUM])
+    product = relationship("Products", foreign_keys=[PRODUCT_NUM])
+
+# Create tables
+with app.app_context():
+    db.create_all()
+
+def import_csv_data(csv_file, model_class):
+    with app.app_context():
+        with open(csv_file, 'r', encoding='utf-8-sig') as file:
+            csv_reader = csv.DictReader(file)
+            for row in csv_reader:
+                # Convert 'True' and 'False' strings to boolean values
+                for key, value in row.items():
+                    if value.lower() == 'true':
+                        row[key] = True
+                    elif value.lower() == 'false':
+                        row[key] = False
+                try:
+                    db.session.add(model_class(**row))
+                except Exception as e:
+                    print(f"Error importing data from {csv_file}: {e}")
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(f"Error committing data to the database: {e}")
+
+def initialize_database():
+    data_folder = os.path.join(app.root_path, 'data')
+    for filename in os.listdir(data_folder):
+        if filename.endswith('.csv'):
+            if 'households' in filename:
+                import_csv_data(os.path.join(data_folder, filename), Households)
+            elif 'products' in filename:
+                import_csv_data(os.path.join(data_folder, filename), Products)
+            elif 'transactions' in filename:
+                import_csv_data(os.path.join(data_folder, filename), Transactions)
+
+initialize_database()
+
+# Create tables
+with app.app_context():
+    db.create_all()
+
+# from models import Households, Transactions, Products
 
 @app.route('/')
 def redirect_login():
@@ -60,10 +135,13 @@ def predictive_modeling():
 
 @app.route('/example_pull')
 def example_pull():
-    household_10 = session.query(Households, Transactions, Products).\
+    household_10 = db.session.query(Households, Transactions, Products).\
         join(Transactions, Transactions.HSHD_NUM == Households.HSHD_NUM).\
         join(Products, Products.PRODUCT_NUM == Transactions.PRODUCT_NUM).\
         filter(Households.HSHD_NUM == 10).all()
+    
+    # Print the variable to the console
+    print(household_10)
 
     return render_template('example_pull.html', name = name, households = household_10)  
 
