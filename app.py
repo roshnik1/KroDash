@@ -156,7 +156,9 @@ def upload(methods=['GET', 'POST']):
 	
 @app.route('/uploader', methods = ['GET', 'POST'])
 def uploader():
+    global name
     if request.method == 'POST':
+        name = request.form.get('name')
         f = request.files['file']
         newFileName = fileNameAppend(secure_filename(f.filename))
         f.save(os.path.join(app.config['UPLOAD_FOLDER'], secure_filename(newFileName)))
