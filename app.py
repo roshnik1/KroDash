@@ -125,11 +125,6 @@ def redirect_login():
 def login():
    return render_template('login.html')
 
-@app.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),
-                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
 @app.route('/predictive_modeling')
 def predictive_modeling():
     return render_template('predictive_modeling.html', name = name)
