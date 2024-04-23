@@ -21,26 +21,14 @@ app = Flask(__name__)
 
 # Define the SQLAlchemy database URI
 DATABASE_URI = 'postgresql+psycopg2://roshnik:Hello123#@retail-data.postgres.database.azure.com:5432/postgres'
-
-# Configure the Flask app with SQLAlchemy database URI
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
-
-# Suppress SQLAlchemy's track modifications feature
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize SQLAlchemy with the Flask app
 db = SQLAlchemy(app)
-
-# Initialize Flask-Migrate with the Flask app and SQLAlchemy
 migrate = Migrate(app, db)
-
-# Create the engine for SQLAlchemy
 engine = db.create_engine(DATABASE_URI)
-
-# Create a session maker for SQLAlchemy
 Session = sessionmaker(bind=engine)
-
-# Create a session object
 session = Session()
 
 relative_path = os.path.dirname(__file__)
@@ -111,6 +99,10 @@ def predictive_modeling():
     global name
     if request.method == 'POST':
         name = request.form.get('name') 
+    else:
+        # Ensure name is not empty if it hasn't been set
+        if not name:
+            name = "Guest"
     return render_template('predictive_modeling.html', name = name)
 
 
@@ -124,19 +116,18 @@ def example_pull():
         # Ensure name is not empty if it hasn't been set
         if not name:
             name = "Guest"
-    
+
     household_10 = session.query(Households, Transactions, Products).\
         join(Transactions, Transactions.hshd_num == Households.hshd_num).\
         join(Products, Products.product_num == Transactions.product_num).\
-        filter(Households.hshd_num == 7).all()
-    
-    print("Household Data:", household_10)  # Add this debug statement
+        filter(Households.hshd_num == 10).all()
 
     return render_template('example_pull.html', name = name, households = household_10)  
 
 @app.route('/search_input', methods=['GET', 'POST'])
 def search_input():
     global name
+    global hhs
     name = ""
     if request.method == 'POST':
         name = request.form.get('name') 
@@ -149,6 +140,7 @@ def search_input():
 @app.route('/search_pull', methods=['GET', 'POST'])
 def search_pull():
     global name
+    global hhs
     name = ""
     if request.method == 'POST':
         name = request.form.get('name') 
@@ -156,6 +148,7 @@ def search_pull():
         # Ensure name is not empty if it hasn't been set
         if not name:
             name = "Guest"
+    
     selected_num = request.form['hh']
 
     household_search = session.query(Households, Transactions, Products).\
@@ -234,32 +227,24 @@ def readNewCSVData(file_path):
         readSuccess = False #if header matches
         rows = []
         for line in csv_reader:
-            print("Reading line:", line)  # Debugging statement
-
             #set table type by reading first header in first line
             if i == 0:
-                print("Checking header:", line[0])  # Debugging statement
                 if line[0].upper() == 'HSHD_NUM': #households
                     tableType = 1
                     readSuccess = True
-                    print("Header matched: 'HSHD_NUM'")  # Debugging statement
                 elif line[0].upper() == 'BASKET_NUM': #transactions
                     tableType = 2
                     readSuccess = True
-                    print("Header matched: 'BASKET_NUM'")  # Debugging statement
                 elif line[0].upper() == 'PRODUCT_NUM': #products
                     tableType = 3
                     readSuccess = True
-                    print("Header matched: 'PRODUCT_NUM'")  # Debugging statement
 
             if readSuccess:
                 if i > 0:
                     rows.append(line)
-                    print("Added row to rows list:", line)  # Debugging statement
             i += 1
 
         if readSuccess and len(rows) > 0:
-            print("Preparing to write data for table type:", tableType)  # Debugging statement
             returnMessage = writeNewCSVData(tableType, rows)
             tableString = ''
             if returnMessage == 1:
@@ -268,17 +253,14 @@ def readNewCSVData(file_path):
                 tableString = 'Transactions'
             elif returnMessage == 3:
                 tableString = 'Products'
-            print("Update successful for table:", tableString)  # Debugging statement
             return 'Updated table "' + tableString + '"'
         else:
-            print("Error: Headers do not meet expectation or no rows found")  # Debugging statement
             return 'Error in reading CSV file, headers do not meet expectation'
 
 def writeNewCSVData(tableType, rows):
     try:
         if tableType == 1:  # households
             for row in rows:
-                print("Processing row for Households:", row)  # Debugging statement
                 newRow = Households(
                     hshd_num=row[0],
                     l=boolFix(row[1]),
@@ -293,22 +275,20 @@ def writeNewCSVData(tableType, rows):
                 session.add(newRow)
         elif tableType == 2:  # transactions
             for row in rows:
-                print("Processing row for Transactions:", row)  # Debugging statement
                 newRow = Transactions(
-                    basket_num=row[1],
-                    hshd_num=row[2],
-                    purchase=row[3],
-                    product_num=row[4],
-                    spend=row[5],
-                    units=row[6],
-                    store_r=row[7],
-                    week_num=row[9],
-                    year=row[10]
+                    basket_num=row[0],
+                    hshd_num=row[1],
+                    purchase=row[2],
+                    product_num=row[3],
+                    spend=row[4],
+                    units=row[5],
+                    store_r=row[6],
+                    week_num=row[7],
+                    year=row[8]
                 )
                 session.add(newRow)
         elif tableType == 3:  # products
             for row in rows:
-                print("Processing row for Products:", row)  # Debugging statement
                 newRow = Products(
                     product_num=row[0],
                     department=row[1],
@@ -319,15 +299,12 @@ def writeNewCSVData(tableType, rows):
                 session.add(newRow)
 
         session.commit()
-        print("Commit successful.")  # Debugging statement
         return tableType  # Returning tableType might not be necessary
     except SQLAlchemyError as ex:
         session.rollback()
         error_message = f"Error updating table type {tableType}: {str(ex)}"
         app.logger.error(error_message)
-        print("Error:", error_message)  # Debugging statement
         return error_message
-
 
 def fileNameAppend(filename):
     name, ext = os.path.splitext(filename)
