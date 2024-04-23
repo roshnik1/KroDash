@@ -114,16 +114,7 @@ def predictive_modeling():
 
 
 @app.route('/example_pull', methods=['GET', 'POST'])
-def example_pull():
-    global name
-    name = ""  # Initialize name before any reference
-    if request.method == 'POST':
-        name = request.form.get('name') 
-    else:
-        # Ensure name is not empty if it hasn't been set
-        if not name:
-            name = "Guest"
-    
+def example_pull(): 
     household_10 = session.query(Households, Transactions, Products).\
         join(Transactions, Transactions.hshd_num == Households.hshd_num).\
         join(Products, Products.product_num == Transactions.product_num).\
@@ -131,7 +122,7 @@ def example_pull():
     
     print("Household Data:", household_10)  # Add this debug statement
 
-    return render_template('example_pull.html', name=name, households=household_10)  
+    return render_template('example_pull.html', name = name, households = household_10)  
 
 
 @app.route('/search_input', methods=['GET', 'POST'])
