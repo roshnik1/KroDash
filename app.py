@@ -47,6 +47,12 @@ relative_path = os.path.dirname(__file__)
 # Use forward slashes for file paths, even on Windows
 app.config['UPLOAD_EXTENSIONS'] = ['.csv']
 app.config['UPLOAD_FOLDER'] = os.path.join(relative_path, 'uploads')
+
+name = None
+household = None # Initialize household as None if needed
+hhs = None
+selected_num = None
+
     
 class Households(db.Model):
     __tablename__ = 'households'
@@ -146,7 +152,7 @@ def search_pull():
         join(Products, Products.product_num == Transactions.product_num).\
         filter(Households.hshd_num == selected_num).all()
 
-    return render_template('search_pull.html', name = name, households = household_search, hhs = hhs, selected_num = selected_num)  
+    return render_template('search_pull.html', name = name, household = household_search, hhs = hhs, selected_num = selected_num)  
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload(methods=['GET', 'POST']):
