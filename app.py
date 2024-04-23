@@ -137,6 +137,7 @@ def example_pull():
 @app.route('/search_input', methods=['GET', 'POST'])
 def search_input():
     global name
+    global hhs
     name = ""
     if request.method == 'POST':
         name = request.form.get('name') 
