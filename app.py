@@ -105,7 +105,6 @@ def predictive_modeling():
             name = "Guest"
     return render_template('predictive_modeling.html', name = name)
 
-
 @app.route('/example_pull', methods=['GET', 'POST'])
 def example_pull():
     global name
@@ -123,6 +122,29 @@ def example_pull():
         filter(Households.hshd_num == 10).all()
 
     return render_template('example_pull.html', name = name, households = household_10)  
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    global name
+    global hhs
+    hhst = session.query(Households.hshd_num).order_by(Households.hshd_num).all()
+    i = 0
+    hhs = [item[i] for item in hhst]
+
+    if request.method == 'POST':
+        name = request.form.get('name') 
+
+    sales_graph, region_graph, commodity_graph = get_graphs()
+
+    if name:
+        return render_template('dashboard.html', name = name, 
+        sales_graph = sales_graph,
+        region_graph = region_graph, 
+        commodity_graph = commodity_graph,
+        hhs = hhs)
+    else:
+        return redirect(url_for('login'))
+
 
 @app.route('/search_input', methods=['GET', 'POST'])
 def search_input():
@@ -196,28 +218,6 @@ def uploader():
         tableString = readNewCSVData(os.path.join(upload_dir, secure_filename(newFileName)))
 
     return render_template('uploaded.html', name = name, tableString = tableString)
-
-@app.route('/dashboard', methods=['GET', 'POST'])
-def dashboard():
-    global name
-    global hhs
-    hhst = session.query(Households.hshd_num).order_by(Households.hshd_num).all()
-    i = 0
-    hhs = [item[i] for item in hhst]
-
-    if request.method == 'POST':
-        name = request.form.get('name') 
-
-    sales_graph, region_graph, commodity_graph = get_graphs()
-
-    if name:
-        return render_template('dashboard.html', name = name, 
-        sales_graph = sales_graph,
-        region_graph = region_graph, 
-        commodity_graph = commodity_graph,
-        hhs = hhs)
-    else:
-        return redirect(url_for('login'))
 
 def readNewCSVData(file_path):
     with open(file_path, 'r', encoding='utf-8-sig') as f:
