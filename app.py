@@ -226,7 +226,7 @@ def dashboard():
         return redirect(url_for('login'))
 
 def readNewCSVData(file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding='utf-8-sig') as f:
         csv_reader = csv.reader(f)
         i = 0
         tableType = 0
