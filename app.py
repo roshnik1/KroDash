@@ -19,6 +19,8 @@ from sqlalchemy.exc import SQLAlchemyError
 
 app = Flask(__name__)
 
+hhs = []
+
 # Define the SQLAlchemy database URI
 DATABASE_URI = 'postgresql+psycopg2://roshnik:Hello123#@retail-data.postgres.database.azure.com:5432/postgres'
 app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
