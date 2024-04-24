@@ -140,11 +140,9 @@ def dashboard():
         return render_template('dashboard.html', name = name, 
         sales_graph = sales_graph,
         region_graph = region_graph, 
-        commodity_graph = commodity_graph,
-        hhs = hhs)
+        commodity_graph = commodity_graph)
     else:
         return redirect(url_for('login'))
-
 
 @app.route('/search_input', methods=['GET', 'POST'])
 def search_input():
@@ -157,6 +155,9 @@ def search_input():
         # Ensure name is not empty if it hasn't been set
         if not name:
             name = "Guest"
+    hhst = session.query(Households.hshd_num).order_by(Households.hshd_num).all()
+    i = 0
+    hhs = [item[i] for item in hhst]
     return render_template('search_input.html', name = name, hhs = hhs)
 
 @app.route('/search_pull', methods=['GET', 'POST'])
@@ -178,7 +179,7 @@ def search_pull():
         join(Products, Products.product_num == Transactions.product_num).\
         filter(Households.hshd_num == selected_num).all()
 
-    return render_template('search_pull.html', name = name, households = household_search, hhs = hhs, selected_num = selected_num)  
+    return render_template('search_pull.html', name = name, households = household_search, hhs = hhs, selected_num = selected_num) 
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload(methods=['GET', 'POST']):
