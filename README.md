@@ -3,7 +3,7 @@
 KroDash is a comprehensive web dashboard designed to facilitate efficient analysis of Kroger's retail data. Built with Flask and deployed on Heroku, this application integrates Azure PostgreSQL and SQLAlchemy to manage and process data seamlessly. It provides insightful visualizations and analytics to support informed decision-making and optimize retail operations.
 
 ## Dashboard Overview
-![Dashboard Overview](images/dashboard-overview.png)
+![Dashboard Overview](images/dashboard-overview.jpg)
 
 ## Features
 
