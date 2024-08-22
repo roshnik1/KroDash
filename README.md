@@ -45,4 +45,4 @@ Start the application with:
 flask run
 ```
 
-and navigate to `127.0.0.1:5000/login`
+Finally, navigate to:  **http://127.0.0.1:5000/**
