@@ -18,37 +18,26 @@ KroDash is a comprehensive web dashboard designed to facilitate efficient analys
 - **Deployment:** Hosted on Heroku with data stored in Azure PostgreSQL.
 
 ## Installation
+>**Note:** To run this repository, you need to have PostgreSQL installed on your local machine or use a cloud-based PostgreSQL service such as Heroku Postgres, Amazon RDS, Google Cloud SQL, or Azure Database for PostgreSQL. This project specifically uses Azure Database for PostgreSQL. Ensure PostgreSQL is properly set up and accessible, then update the project's configuration file with the appropriate database connection details.
 
 Follow these steps to set up KroDash on your local machine:
 
-### 1. Clone the Repository
-
-Clone the repository to your local machine using Git:
-
+**1. Clone the repository to your local machine using Git:**
 ```bash
 git clone https://github.com/yourusername/KroDash.git
 ```
 
-### 2. Change Directory
-
-Navigate into the project directory:
-
+**2. Navigate into the project directory:**
 ```bash
 cd KroDash
 ```
 
-### 3. Install Dependencies
-
-Install the Python dependencies with:
-
+**3. Install the Python dependencies with:**
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Start the app
-
-Start the application with:
-
+**4. Start the application with:**
 ```bash
 flask run
 ```
