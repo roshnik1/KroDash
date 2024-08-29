@@ -14,7 +14,7 @@ KroDash is a comprehensive web dashboard designed to facilitate efficient analys
 ## Technologies
 
 - **Backend:** Flask for web development and SQLAlchemy for ORM.
-- **Frontend:** HTML, CSS, and JavaScript for a dynamic user interface.
+- **Frontend:** HTML, CSS, and JavaScript for a dynamic user interface; Bootstrap for responsive design and styling.
 - **Deployment:** Hosted on Heroku with data stored in Azure PostgreSQL.
 
 ## Installation
@@ -29,7 +29,15 @@ Clone the repository to your local machine using Git:
 git clone https://github.com/yourusername/KroDash.git
 ```
 
-### 2. Install Dependencies
+### 2. Change Directory
+
+Navigate into the project directory:
+
+```bash
+cd KroDash
+```
+
+### 3. Install Dependencies
 
 Install the Python dependencies with:
 
@@ -37,7 +45,7 @@ Install the Python dependencies with:
 pip install -r requirements.txt
 ```
 
-### 3. Start the app
+### 4. Start the app
 
 Start the application with:
 
