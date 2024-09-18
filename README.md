@@ -1,15 +1,24 @@
-# KroDash
+# KroDash: Retail Data Web Dashboard
 
-KroDash is a comprehensive web dashboard designed to facilitate efficient analysis of Kroger's retail data. Built with Flask and deployed on Heroku, this application integrates Azure PostgreSQL and SQLAlchemy to manage and process data seamlessly. It provides insightful visualizations and analytics to support informed decision-making and optimize retail operations.
+The Kroger Retail Data Dashboard provides an interactive visualization and analysis of Kroger’s retail data, offering insights into sales performance, customer behavior, and inventory management. This dashboard is designed to help stakeholders make informed decisions by providing a comprehensive overview of key metrics and trends in retail operations.
+
+## Initial Questions
+
+- What are Kroger's overall sales trends over the past few years?  
+- Which product categories contribute the most to total sales?  
+- How do sales vary across different divisions?  
+- What are the key customer demographics and their purchasing behavior?  
+- Are there any noticeable patterns in inventory turnover?  
 
 ## Dashboard Overview
 ![Dashboard Overview](images/dashboard-overview.jpg)
 
 ## Features
 
-- **Interactive Visualizations:** Dynamic charts and graphs to explore and analyze retail data.
-- **Data Management:** Streamlined data processing with Azure PostgreSQL and SQLAlchemy.
-- **User-Friendly Interface:** Responsive design for an optimal user experience.
+- **Sales Performance Analysis:** Visualize sales trends over time, including total sales, sales by product department, and sales by store location.
+- **Inventory Management:** Track inventory levels, identify top-selling products, and monitor stock levels to optimize inventory management.
+- **Interactive Filters:** Use interactive filters to drill down into specific years, product categories, and divisions.
+- **Data Visualization:** Includes charts and graphs to represent data intuitively and facilitate quick analysis.
 
 ## Technologies
 
@@ -22,24 +31,12 @@ KroDash is a comprehensive web dashboard designed to facilitate efficient analys
 
 Follow these steps to set up KroDash on your local machine:
 
-**1. Clone the repository to your local machine using Git:**
-```bash
-git clone https://github.com/yourusername/KroDash.git
-```
+**1. Clone repository:** `git clone https://github.com/roshnik1/KroDash.git`
 
-**2. Navigate into the project directory:**
-```bash
-cd KroDash
-```
+**2. Navigate into project directory:** `cd KroDash`
 
-**3. Install the Python dependencies with:**
-```bash
-pip install -r requirements.txt
-```
+**3. Install Python dependencies:** `pip install -r requirements.txt`
 
-**4. Start the application with:**
-```bash
-flask run
-```
+**4. Start the application with:** `flask run`
 
-Finally, navigate to:  **http://127.0.0.1:5000/**
+**5. Finally, navigate to:**  `http://127.0.0.1:5000/`
